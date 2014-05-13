@@ -1,0 +1,7 @@
+2014-05-13
+==========
+
+-Adding files to allow for reduced tree production
+-Code has not yet been tested
+-Need to add support for 8 TeV T1tttt cross-sections, event counts, weights, etc.
+-Want to add meta-data inside the same ROOT file as the reduced tree TTree (production date, reduced tree version, original file name and event count, etc.)

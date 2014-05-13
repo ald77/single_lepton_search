@@ -86,6 +86,9 @@ protected:
 
   double GetHighestJetPt(const unsigned int=1) const;
   double GetHighestJetCSV(const unsigned int=1) const;
+
+  int GetMass1() const;
+  int GetMass2() const;
 };
 
 #endif
