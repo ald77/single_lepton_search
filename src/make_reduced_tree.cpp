@@ -7,8 +7,11 @@
 int main(int argc, char *argv[]){
   std::string inFilename("");
   bool iscfA(false);
+  bool explicit_outfile(false);
+  std::string outFilename("");
+
   int c(0);
-  while((c=getopt(argc, argv, "i:c"))!=-1){
+  while((c=getopt(argc, argv, "i:o:c"))!=-1){
     switch(c){
     case 'i':
       inFilename=optarg;
@@ -16,14 +19,16 @@ int main(int argc, char *argv[]){
     case 'c':
       iscfA=true;
       break;
+    case 'o':
+      explicit_outfile=true;
+      outFilename=optarg;
     default:
       break;
     }
   }
   
-  std::string outFilename("");
   if(iscfA){
-    outFilename="reduced_trees/"+inFilename+".root";
+    if(!explicit_outfile) outFilename="reduced_trees/"+inFilename+".root";
     inFilename="/net/cms2/cms2r0/cfA/"+inFilename+"/cfA_"+inFilename+"*.root";
   }else{
     std::string baseName(inFilename);
@@ -39,7 +44,7 @@ int main(int argc, char *argv[]){
         baseName.append("file_name_ended_with_slash");
       }
     }
-    outFilename="reduced_trees/"+baseName+".root";
+    if(!explicit_outfile) outFilename="reduced_trees/"+baseName+".root";
     std::cout << inFilename << "\n" << baseName << "\n" << outFilename << "\n";
   }
 
