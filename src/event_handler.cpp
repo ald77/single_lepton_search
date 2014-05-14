@@ -703,14 +703,22 @@ double EventHandler::GetHighestJetCSV(const unsigned int nth_highest) const{
 }
 
 int EventHandler::GetMass1() const{
-  const unsigned p1(model_params->find('_'));
-  const unsigned p2(model_params->find('_',p1));
-  return atoi(model_params->substr(p1,p2-p1).c_str());
+  const std::string::size_type p1(model_params->find('_'));
+  const std::string::size_type p2(model_params->find('_',p1));
+  if(p1!=std::string::npos && p2!=std::string::npos){
+    return atoi(model_params->substr(p1,p2-p1).c_str());
+  }else{
+    return -1;
+  }
 }
 
 int EventHandler::GetMass2() const{
-  const unsigned p1(model_params->find('_'));
-  const unsigned p2(model_params->find('_',p1));
-  const unsigned p3(model_params->find(' ',p2));
-  return atoi(model_params->substr(p2,p3-p2).c_str());
+  const std::string::size_type p1(model_params->find('_'));
+  const std::string::size_type p2(model_params->find('_',p1));
+  const std::string::size_type p3(model_params->find(' ',p2));
+  if(p2!=std::string::npos && p3!=std::string::npos){
+    return atoi(model_params->substr(p2,p3-p2).c_str());
+  }else{
+    return -1;
+  }
 }

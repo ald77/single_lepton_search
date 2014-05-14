@@ -5,3 +5,10 @@
 -Code has not yet been tested
 -Need to add support for 8 TeV T1tttt cross-sections, event counts, weights, etc.
 -Want to add meta-data inside the same ROOT file as the reduced tree TTree (production date, reduced tree version, original file name and event count, etc.)
+
+2014-05-13
+==========
+-Fixed bug in which GetMass1/2 were unable to handle files without the "_mass1_mass2 " pattern in model_params
+-Code can now produce reduced_trees which look valid, but these still need further testing. Tested on UCSB1864ra2b_v71s so far.
+-Possibly suspicious behavior in tested reduced_trees: all events pass JSON cuts and I'm not sure the number of leptons distributions are good given the RA2b skim cuts are applied (need to check what cuts are included)
+
