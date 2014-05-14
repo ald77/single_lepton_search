@@ -13,3 +13,5 @@
 -Possibly suspicious behavior in tested reduced_trees: all events pass JSON cuts and I'm not sure the number of leptons distributions are good given the RA2b skim cuts are applied (need to check what cuts are included)
 -Committed missing reduced_trees folder to hold data
 -Added support for meta-data in ROOT file associated with reduced_trees. Contains original file name, original event count, a version tag, and production date/time.
+-Started producing version 0 reduced trees of UCSB1933 (13 TeV ttbar, v71), UCSB1949 (14 TeV T1tttt, v71), and UCSB2027reshuf (13 TeV ttbar with 25 ns bunch spacing, v71) for further testing and early studies. Production done with clean checkout of last commit.
+-Reminders for things I'd like to do: try MT2 to remove dilepton ttbar background (assuming this turns out to be dominant background after MT cut), plotting utility that reads in from a config file (see Manuel's for example/starting point).
