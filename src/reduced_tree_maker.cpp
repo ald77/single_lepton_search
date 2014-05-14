@@ -1,11 +1,15 @@
 #include "reduced_tree_maker.hpp"
+#include <ctime>
 #include <vector>
 #include <string>
 #include <set>
+#include <stdint.h>
 #include "timer.hpp"
 #include "event_handler.hpp"
 #include "event_number.hpp"
 #include "weights.hpp"
+
+const uint16_t ReducedTreeMaker::reduced_tree_version(0);
 
 ReducedTreeMaker::ReducedTreeMaker(const std::string& in_file_name,
                                    const bool is_list,
@@ -27,25 +31,27 @@ void ReducedTreeMaker::MakeReducedTree(const std::string& out_file_name){
   bool passesJSONCut(false), passesPVCut(false), passesMETCleaningCut(false);
 
   float pu_true_num_interactions(0.0);
-  unsigned short num_primary_vertices(0);
+  uint8_t num_primary_vertices(0);
 
   float highest_jet_pt(0.0), second_highest_jet_pt(0.0), third_highest_jet_pt(0.0),
     fourth_highest_jet_pt(0.0), fifth_highest_jet_pt(0.0);
   float highest_csv(0.0), second_highest_csv(0.0),
     third_highest_csv(0.0), fourth_highest_csv(0.0), fifth_highest_csv(0.0);
   float met_sig(0.0), met(0.0);
-  unsigned short num_jets(0), num_b_tagged_jets(0);
+  uint8_t num_jets(0), num_b_tagged_jets(0);
 
-  unsigned short num_iso_tracks(0);
-  unsigned short num_veto_electrons(0), num_veto_muons(0), num_veto_taus(0), num_veto_leptons(0);
-  unsigned short num_loose_electrons(0), num_loose_muons(0), num_loose_taus(0), num_loose_leptons(0);
-  unsigned short num_medium_electrons(0), num_medium_muons(0), num_medium_taus(0), num_medium_leptons(0);
-  unsigned short num_tight_electrons(0), num_tight_muons(0), num_tight_taus(0), num_tight_leptons(0);
+  uint8_t num_iso_tracks(0);
+  uint8_t num_veto_electrons(0), num_veto_muons(0), num_veto_taus(0), num_veto_leptons(0);
+  uint8_t num_loose_electrons(0), num_loose_muons(0), num_loose_taus(0), num_loose_leptons(0);
+  uint8_t num_medium_electrons(0), num_medium_muons(0), num_medium_taus(0), num_medium_leptons(0);
+  uint8_t num_tight_electrons(0), num_tight_muons(0), num_tight_taus(0), num_tight_leptons(0);
 
   float ht_jets(0.0), ht_jets_met(0.0), ht_jets_leps(0.0), ht_jets_met_leps(0.0);
   float full_weight(0.0), lumi_weight(0.0), pu_weight(0.0);
 
-  short mass1(0), mass2(0);
+  int16_t mass1(0), mass2(0);
+
+  uint32_t run_here(0), event_here(0), lumiblock_here(0);
 
   reduced_tree.Branch("passesJSONCut", &passesJSONCut);
   reduced_tree.Branch("passesPVCut",&passesPVCut);
@@ -106,9 +112,9 @@ void ReducedTreeMaker::MakeReducedTree(const std::string& out_file_name){
   reduced_tree.Branch("mass1", &mass1);
   reduced_tree.Branch("mass2", &mass2);
 
-  reduced_tree.Branch("run", &run);
-  reduced_tree.Branch("event", &event);
-  reduced_tree.Branch("lumiblock", &lumiblock);
+  reduced_tree.Branch("run", &run_here);
+  reduced_tree.Branch("event", &event_here);
+  reduced_tree.Branch("lumiblock", &lumiblock_here);
 
   WeightCalculator wc(19399.0);
 
@@ -185,9 +191,41 @@ void ReducedTreeMaker::MakeReducedTree(const std::string& out_file_name){
     lumi_weight=this_scale_factor;
     full_weight=pu_weight*lumi_weight;
 
+    run_here=run;
+    event_here=event;
+    lumiblock_here=lumiblock;
+
     reduced_tree.Fill(); 
   }
 
   reduced_tree.Write();
+
+  time_t raw_time;
+  time(&raw_time);
+  struct tm * utc_creation_time(gmtime(&raw_time));
+  uint16_t utc_creation_year(utc_creation_time->tm_year+1900);
+  uint8_t utc_creation_month(utc_creation_time->tm_mon+1);
+  uint8_t utc_creation_day(utc_creation_time->tm_mday);
+  uint8_t utc_creation_hour(utc_creation_time->tm_hour);
+  uint8_t utc_creation_minute(utc_creation_time->tm_min);
+  uint8_t utc_creation_second(utc_creation_time->tm_sec);
+  int32_t utc_creation_isdst(utc_creation_time->tm_isdst);
+
+  uint32_t original_file_entries(GetTotalEntries());
+
+  TTree meta_info("meta_info", "meta_info");
+  meta_info.Branch("original_file_name", &sampleName);
+  meta_info.Branch("original_file_entries", &original_file_entries);
+  meta_info.Branch("reduced_tree_version", const_cast<uint16_t*>(&reduced_tree_version));
+  meta_info.Branch("utc_creation_year", &utc_creation_year);
+  meta_info.Branch("utc_creation_month", &utc_creation_month);
+  meta_info.Branch("utc_creation_day", &utc_creation_day);
+  meta_info.Branch("utc_creation_hour", &utc_creation_hour);
+  meta_info.Branch("utc_creation_minute", &utc_creation_minute);
+  meta_info.Branch("utc_creation_second", &utc_creation_second);
+  meta_info.Branch("utc_creation_isdst", &utc_creation_isdst);
+  meta_info.Fill();
+  meta_info.Write();
+
   file.Close();
 }
