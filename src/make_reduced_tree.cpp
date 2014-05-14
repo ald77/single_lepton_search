@@ -1,3 +1,13 @@
+/*
+  Produces reduced_trees from cfA format ntuples.
+  Input: cfA format .root file (file path given with -i option)
+  Output: reduced_tree format .root file (file path may optionally be specified with -o option)
+  Options:
+  -i: Set input file name. Only one file path accepted, but may contain wildcards.
+  -c: Denotes that input name is only a cfA ntuple name and program should intelligently figure out the full path
+  -o: Explicitly set output file name (automatically determined if not set)
+*/
+
 #include <iostream>
 #include <string>
 #include <unistd.h>

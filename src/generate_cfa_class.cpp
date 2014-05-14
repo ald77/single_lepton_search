@@ -1,3 +1,11 @@
+/*
+  Takes a root file with directory configurableAnalysis containing trees eventA and eventB (as in cfA ntuple files) and produces source code for a container class containing all the branches.
+
+  Input: Exactly one .root file formatted as above. Only first command line argument accepted.
+  Output: a .cpp and a .hpp file containing source code for cfA container class
+  Options: None
+*/
+
 #include "generate_cfa_class.hpp"
 #include <iostream>
 #include <sstream>
