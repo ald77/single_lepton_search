@@ -11,4 +11,4 @@
 -Fixed bug in which GetMass1/2 were unable to handle files without the "_mass1_mass2 " pattern in model_params
 -Code can now produce reduced_trees which look valid, but these still need further testing. Tested on UCSB1864ra2b_v71s so far.
 -Possibly suspicious behavior in tested reduced_trees: all events pass JSON cuts and I'm not sure the number of leptons distributions are good given the RA2b skim cuts are applied (need to check what cuts are included)
-
+-Committed missing reduced_trees folder to hold data
