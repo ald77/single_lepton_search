@@ -18,10 +18,11 @@ vpath %.exe $(EXEDIR)
 vpath %.d $(MAKEDIR)
 
 # Add new executables to this list
-all: make_reduced_tree.exe
+all: make_reduced_tree.exe view_reduced_tree_data.exe
 
 # List any object files your executable oneed to be linked with
 $(EXEDIR)/make_reduced_tree.exe: make_reduced_tree.o reduced_tree_maker.o timer.o weights.o in_json_2012.o math.o pu_constants.o event_number.o weights.o cfa.o event_handler.o
+$(EXEDIR)/view_reduced_tree_data.exe: utils.o
 
 -include $(addsuffix .d,$(addprefix $(MAKEDIR)/,$(notdir $(basename $(wildcard $(SRCDIR)/*.cpp)))))
 -include $(MAKEDIR)/cfa.d
