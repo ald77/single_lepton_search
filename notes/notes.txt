@@ -27,3 +27,4 @@
 -Taking cuts from slide 8 of cms2.physics.ucsb.edu/susy/slides/archive/14-04-09_Manuel_quick_plots.pdf which may not be the actual RA4 cuts.
 -Triggers?
 -Version 1 of reduced_trees is being committed. Has been lightly tested on UCSB1864ra2b_v71s. New version adds some RA4 cuts (need to checked for correctness!), MT and MT2 variables, and delta phi between lepton and W/MET
+-Started producing version 1 reduced trees of UCSB1933 (13 TeV ttbar, v71), UCSB1949 (14 TeV T1tttt, v71), and UCSB2027reshuf (13 TeV ttbar with 25 ns bunch spacing, v71) for further testing and early studies. Production done with clean checkout of last commit.
