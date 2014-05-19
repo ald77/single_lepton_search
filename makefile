@@ -2,7 +2,7 @@
 EXECUTABLES := make_reduced_tree.exe view_reduced_tree_data.exe
 
 #Add new object files for linking here
-OBJECTS := cfa.o event_handler.o event_number.o in_json_2012.o math.o pu_constants.o reduced_tree_maker.o timer.o utils.o weights.o
+OBJECTS := cfa.o event_handler.o event_number.o in_json_2012.o math.o pu_constants.o reduced_tree_maker.o timer.o utils.o weights.o mt2_bisect.o
 
 EXEDIR := scripts
 OBJDIR := bin
