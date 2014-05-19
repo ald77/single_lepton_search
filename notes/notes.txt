@@ -19,7 +19,11 @@
 2014-05-14
 ==========
 -Improved the compilation system last night so that you don't need to explicitly link all the needed object files for each executable. Tested and seems to work so far.
--I think right now things only get added to the archive, but never removed. Have to check this and if it's true maybe try to find a way around it
+-Checked and confirmed that things get removed from static library by compiling, checking the size of the library, adding a function to mt2_bisect.cpp, recompiling, rechecking the size of the library, removing that function, recompiling, and checking that the library shrunk back to it's original size
 -Also might want to consider fully automating things by naming executable source with .cxx and object implementation with .cpp and then just taking everything from the src directory.
 -Adding mt2_bisect code taken directly from https://github.com/neggert/MCTSusy/tree/master/mt2. Made the minimal changes necessary to remove all warnings. At some point, want to find/recreate my own version, as I seem to remember there are a few cases where this one produces an MT2 that is slightly off (albeit by a very small error). (Was this correlated with small test masses?) Also need to make sure I'm using this calculator correctly.
--Need to add variables to seperate fully leptonic and semi-leptonic ttbar to reduced trees.
+-Need to add variables to seperate fully leptonic and semi-leptonic ttbar to reduced trees. Have now added a couple of MT and MT2 variables, as well as the delta phi between the lepton and MET/W.
+-Need to confirm that cuts are done correctly (e.g. tau veto, whether we require loose, medium, or tight leptons, whether HT includes MET/leptons, whether we apply MET cleaning, etc.).
+-Taking cuts from slide 8 of cms2.physics.ucsb.edu/susy/slides/archive/14-04-09_Manuel_quick_plots.pdf which may not be the actual RA4 cuts.
+-Triggers?
+-Version 1 of reduced_trees is being committed. Has been lightly tested on UCSB1864ra2b_v71s. New version adds some RA4 cuts (need to checked for correctness!), MT and MT2 variables, and delta phi between lepton and W/MET

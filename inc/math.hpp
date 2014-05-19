@@ -13,6 +13,8 @@ namespace Math{
   double GetAbsDeltaPhi(const double, const double);
   double GetDeltaR(const double, const double, const double, const double);
 
+  double CalcMT(const double px1, const double py1, const double px2, const double py2);
+
   template<typename T>
   T add_in_quadrature(T x, T y){
     if(x<0) x=-x;

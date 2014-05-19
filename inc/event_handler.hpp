@@ -40,6 +40,13 @@ protected:
   bool PassesJSONCut() const;
   bool PassesPVCut() const;
   bool PassesMETCleaningCut() const;
+  bool PassesLeptonCut() const;
+  bool PassesHTCut() const;
+  bool PassesMETCut() const;
+  bool PassesNumJetsCut() const;
+  bool PassesBTaggingCut() const;
+
+  bool PassesBaselineSelection() const;
 
   bool PassesTrigger(const std::string&) const;
 
@@ -54,7 +61,6 @@ protected:
   int GetNumCSVTJets() const;
   int GetNumCSVMJets() const;
   int GetNumCSVLJets() const;
-  int GetNumBTaggedJets() const;
 
   bool isGoodJet(const unsigned int, const bool=true, const double=20.0,
                  const double=2.4, const bool=true) const;
@@ -86,6 +92,11 @@ protected:
 
   double GetHighestJetPt(const unsigned int=1) const;
   double GetHighestJetCSV(const unsigned int=1) const;
+
+  double GetMT2(const double test_mass=0.0) const;
+  double GetMT() const;
+  double GetDeltaPhiMETLepton() const;
+  double GetDeltaPhiWLepton() const;
 
   int GetMass1() const;
   int GetMass2() const;

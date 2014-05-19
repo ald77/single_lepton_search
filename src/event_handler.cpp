@@ -29,6 +29,7 @@
 #include "cfa.hpp"
 #include "math.hpp"
 #include "in_json_2012.hpp"
+#include "mt2_bisect.hpp"
 
 const double EventHandler::CSVTCut(0.898);
 const double EventHandler::CSVMCut(0.679);
@@ -243,6 +244,35 @@ int EventHandler::GetPBNR() const{
   return 1;
 }
 
+bool EventHandler::PassesLeptonCut() const{
+  //Require exactly one loose electron or muon and veto on any other leptons (e, mu, or tau)
+  return (GetNumElectrons(1)+GetNumMuons(1)==1)
+    && (GetNumElectrons(0)+GetNumMuons(0)==1)
+    && (GetNumTaus(0)==0);
+}
+
+bool EventHandler::PassesHTCut() const{
+  return GetHT()>500.0;
+}
+
+bool EventHandler::PassesMETCut() const{
+  return pfTypeImets_et->at(0)>250.0;
+}
+
+bool EventHandler::PassesNumJetsCut() const{
+  return GetNumGoodJets()>=6;
+}
+
+bool EventHandler::PassesBTaggingCut() const{
+  return GetNumCSVMJets()>=2;
+}
+
+bool EventHandler::PassesBaselineSelection() const{
+  return PassesJSONCut() && PassesPVCut() && PassesMETCleaningCut()
+    && PassesLeptonCut() && PassesHTCut() && PassesMETCut()
+    && PassesNumJetsCut() && PassesBTaggingCut();
+}
+
 double EventHandler::GetHT(const bool useMET, const bool useLeps) const{
   double HT(0.0);
   if(useMET && pfTypeImets_et->size()>0) HT+=pfTypeImets_et->at(0);
@@ -322,30 +352,6 @@ int EventHandler::GetNumCSVLJets() const{
     }
   }
   return numPassing;
-}
-
-int EventHandler::GetNumBTaggedJets() const{
-  std::vector<double> csvs(0);
-  for(unsigned int jet(0); jet<jets_AK5PF_pt->size(); ++jet){
-    if(isGoodJet(jet)){
-      csvs.push_back(jets_AK5PF_btag_secVertexCombined->at(jet));
-    }
-  }
-  std::sort(csvs.begin(), csvs.end(), std::greater<double>());
-  if(csvs.size()<=0 || csvs.at(0)<CSVTCut){
-    return 0;
-  }else if(csvs.size()<=1 || csvs.at(1)<CSVTCut){
-    return 1;
-  }else if(csvs.size()<=2 || csvs.at(2)<CSVMCut){
-    return 2;
-  }else if(csvs.size()<=3 || csvs.at(3)<CSVLCut){
-    return 3;
-  }else{
-    unsigned int jet(3);
-    for(; jet<csvs.size() && csvs.at(jet)>CSVLCut; ++jet){
-    }
-    return jet;
-  }
 }
 
 double EventHandler::GetMinDeltaPhiMET(const unsigned int maxjets) const{
@@ -720,5 +726,166 @@ int EventHandler::GetMass2() const{
     return atoi(model_params->substr(p2,p3-p2).c_str());
   }else{
     return -1;
+  }
+}
+
+double EventHandler::GetMT2(const double test_mass) const{
+  double max_pt(-std::numeric_limits<double>::max());
+  double child[3]={0.0, pfTypeImets_ex->at(0), pfTypeImets_ey->at(0)};
+  for(unsigned ele(0); ele<pf_els_pt->size(); ++ele){
+    if(isElectron(ele, 1)){
+      const double this_pt(pf_els_pt->at(ele));
+      if(this_pt>max_pt){
+        max_pt=this_pt;
+        child[1]=pf_els_px->at(ele)+pfTypeImets_ex->at(0);
+        child[2]=pf_els_py->at(ele)+pfTypeImets_ey->at(0);
+      }
+    }
+  }
+  for(unsigned mu(0); mu<pf_mus_pt->size(); ++mu){
+    if(isMuon(mu, 1)){
+      const double this_pt(pf_mus_pt->at(mu));
+      if(this_pt>max_pt){
+        max_pt=this_pt;
+        child[1]=pf_mus_px->at(mu)+pfTypeImets_ex->at(0);
+        child[2]=pf_mus_py->at(mu)+pfTypeImets_ey->at(0);
+      }
+    }
+  }
+
+  const unsigned bad_index(static_cast<unsigned>(-1));
+  unsigned index_1(bad_index), index_2(bad_index);
+  max_pt=-std::numeric_limits<double>::max();
+  double max2_pt(-std::numeric_limits<double>::max());
+  for(unsigned jet(0); jet<jets_AK5PF_pt->size(); ++jet){
+    const double this_pt(jets_AK5PF_pt->at(jet));
+    if(this_pt>max_pt){
+      max2_pt=max_pt;
+      max_pt=this_pt;
+      index_2=index_1;
+      index_1=jet;
+    }else if(this_pt>max2_pt){
+      max2_pt=this_pt;
+      index_2=jet;
+    }
+  }
+
+  if(index_1==bad_index || index_2==bad_index){
+    return 0.0;
+  }else{
+    double jet1[3]={0.0, 0.0, 0.0}, jet2[3]={0.0, 0.0, 0.0};
+    jet1[0]=jets_AK5PF_mass->at(index_1);
+    jet1[1]=jets_AK5PF_px->at(index_1);
+    jet1[2]=jets_AK5PF_py->at(index_1);
+    jet2[0]=jets_AK5PF_mass->at(index_2);
+    jet2[1]=jets_AK5PF_px->at(index_2);
+    jet2[2]=jets_AK5PF_py->at(index_2);
+
+    mt2_bisect::mt2 mt2_calc;
+    mt2_calc.set_momenta(jet1, jet2, child);
+    mt2_calc.set_mn(test_mass);
+    return mt2_calc.get_mt2();
+  }
+}
+
+double EventHandler::GetMT() const{
+  double max_pt(-std::numeric_limits<double>::max());
+  double lep_px(0.0), lep_py(0.0);
+  bool found_lepton(false);
+  for(unsigned ele(0); ele<pf_els_pt->size(); ++ele){
+    if(isElectron(ele, 1)){
+      const double this_pt(pf_els_pt->at(ele));
+      if(this_pt>max_pt){
+        max_pt=this_pt;
+        lep_px=pf_els_px->at(ele);
+        lep_py=pf_els_py->at(ele);
+        found_lepton=true;
+      }
+    }
+  }
+  for(unsigned mu(0); mu<pf_mus_pt->size(); ++mu){
+    if(isMuon(mu, 1)){
+      const double this_pt(pf_mus_pt->at(mu));
+      if(this_pt>max_pt){
+        max_pt=this_pt;
+        lep_px=pf_mus_px->at(mu);
+        lep_py=pf_mus_py->at(mu);
+        found_lepton=true;
+      }
+    }
+  }
+
+  if(found_lepton){
+    return Math::CalcMT(lep_px, lep_py, pfTypeImets_ex->at(0), pfTypeImets_ey->at(0));
+  }else{
+    return 0.0;
+  }
+}
+
+
+double EventHandler::GetDeltaPhiMETLepton() const{
+  double max_pt(-std::numeric_limits<double>::max());
+  double lep_phi(0.0);
+  bool found_lepton(false);
+  for(unsigned ele(0); ele<pf_els_pt->size(); ++ele){
+    if(isElectron(ele, 1)){
+      const double this_pt(pf_els_pt->at(ele));
+      if(this_pt>max_pt){
+        max_pt=this_pt;
+        lep_phi=pf_els_phi->at(ele);
+        found_lepton=true;
+      }
+    }
+  }
+  for(unsigned mu(0); mu<pf_mus_pt->size(); ++mu){
+    if(isMuon(mu, 1)){
+      const double this_pt(pf_mus_pt->at(mu));
+      if(this_pt>max_pt){
+        max_pt=this_pt;
+        lep_phi=pf_mus_phi->at(mu);
+        found_lepton=true;
+      }
+    }
+  }
+
+  if(found_lepton){
+    return Math::GetAbsDeltaPhi(lep_phi, pfTypeImets_phi->at(0));
+  }else{
+    return std::numeric_limits<double>::max();
+  }
+}
+
+double EventHandler::GetDeltaPhiWLepton() const{
+  double max_pt(-std::numeric_limits<double>::max());
+  double lep_px(0.0), lep_py(0.0);
+  bool found_lepton(false);
+  for(unsigned ele(0); ele<pf_els_pt->size(); ++ele){
+    if(isElectron(ele, 1)){
+      const double this_pt(pf_els_pt->at(ele));
+      if(this_pt>max_pt){
+        max_pt=this_pt;
+        lep_px=pf_els_px->at(ele);
+        lep_py=pf_els_py->at(ele);
+        found_lepton=true;
+      }
+    }
+  }
+  for(unsigned mu(0); mu<pf_mus_pt->size(); ++mu){
+    if(isMuon(mu, 1)){
+      const double this_pt(pf_mus_pt->at(mu));
+      if(this_pt>max_pt){
+        max_pt=this_pt;
+        lep_px=pf_mus_px->at(mu);
+        lep_py=pf_mus_py->at(mu);
+        found_lepton=true;
+      }
+    }
+  }
+
+  const double met_px(pfTypeImets_ex->at(0)), met_py(pfTypeImets_ey->at(0));
+  if(found_lepton){
+    return Math::GetAbsDeltaPhi(atan2(lep_py, lep_px), atan2(lep_py+met_py, lep_px+met_px));
+  }else{
+    return std::numeric_limits<double>::max();
   }
 }
