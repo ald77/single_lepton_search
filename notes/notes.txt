@@ -16,7 +16,7 @@
 -Started producing version 0 reduced trees of UCSB1933 (13 TeV ttbar, v71), UCSB1949 (14 TeV T1tttt, v71), and UCSB2027reshuf (13 TeV ttbar with 25 ns bunch spacing, v71) for further testing and early studies. Production done with clean checkout of last commit.
 -Reminders for things I'd like to do: try MT2 to remove dilepton ttbar background (assuming this turns out to be dominant background after MT cut), plotting utility that reads in from a config file (see Manuel's for example/starting point).
 
-2014-05-14
+2014-05-19
 ==========
 -Improved the compilation system last night so that you don't need to explicitly link all the needed object files for each executable. Tested and seems to work so far.
 -Checked and confirmed that things get removed from static library by compiling, checking the size of the library, adding a function to mt2_bisect.cpp, recompiling, rechecking the size of the library, removing that function, recompiling, and checking that the library shrunk back to it's original size
@@ -28,3 +28,8 @@
 -Triggers?
 -Version 1 of reduced_trees is being committed. Has been lightly tested on UCSB1864ra2b_v71s. New version adds some RA4 cuts (need to checked for correctness!), MT and MT2 variables, and delta phi between lepton and W/MET
 -Started producing version 1 reduced trees of UCSB1933 (13 TeV ttbar, v71), UCSB1949 (14 TeV T1tttt, v71), and UCSB2027reshuf (13 TeV ttbar with 25 ns bunch spacing, v71) for further testing and early studies. Production done with clean checkout of last commit.
+
+2014-05-20
+==========
+-Found a bug in reduced_trees versions 0 and 1 in which cross-sections/number of events are not properly computed for T1tttt
+-Need to double check that the v71 cross-sections and numbers of events are now correct. For now just quickly replacing the v68 computation with identical numbers for v71.

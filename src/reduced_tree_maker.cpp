@@ -9,7 +9,7 @@
 #include "event_number.hpp"
 #include "weights.hpp"
 
-const uint16_t ReducedTreeMaker::reduced_tree_version(1);
+const uint16_t ReducedTreeMaker::reduced_tree_version(2);
 
 ReducedTreeMaker::ReducedTreeMaker(const std::string& in_file_name,
                                    const bool is_list,
@@ -57,6 +57,9 @@ void ReducedTreeMaker::MakeReducedTree(const std::string& out_file_name){
 
   float ht_jets(0.0), ht_jets_met(0.0), ht_jets_leps(0.0), ht_jets_met_leps(0.0);
   float full_weight(0.0), lumi_weight(0.0), pu_weight(0.0);
+
+  float cross_section(0.0);
+  uint32_t events_of_this_type(0);
 
   int16_t mass1(0), mass2(0);
 
@@ -131,6 +134,9 @@ void ReducedTreeMaker::MakeReducedTree(const std::string& out_file_name){
   reduced_tree.Branch("full_weight", &full_weight);
   reduced_tree.Branch("lumi_weight", &lumi_weight);
   reduced_tree.Branch("pu_weight", &pu_weight);
+
+  reduced_tree.Branch("cross_section", &cross_section);
+  reduced_tree.Branch("events_of_this_type", &events_of_this_type);
  
   reduced_tree.Branch("mass1", &mass1);
   reduced_tree.Branch("mass2", &mass2);
@@ -219,9 +225,11 @@ void ReducedTreeMaker::MakeReducedTree(const std::string& out_file_name){
     mass2=GetMass2();
 
     double this_scale_factor(scaleFactor);
-    if(sampleName.substr(0, 3)=="SMS"){
+    if(sampleName.find("SMS-")!=std::string::npos){
       this_scale_factor=wc.GetWeight(sampleName, mass1, mass2);
     }
+    cross_section=wc.GetCrossSection(sampleName, mass1, mass2);
+    events_of_this_type=wc.GetTotalEvents(sampleName, mass1, mass2);
 
     pu_weight=isRealData?1.0:GetPUWeight(lumiWeights);
     lumi_weight=this_scale_factor;

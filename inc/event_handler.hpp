@@ -100,6 +100,10 @@ protected:
 
   int GetMass1() const;
   int GetMass2() const;
+
+private:
+  mutable std::vector<double> beta_;
+  mutable bool beta_cached_;
 };
 
 #endif

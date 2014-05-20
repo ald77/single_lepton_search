@@ -40,7 +40,9 @@ const std::vector<std::vector<int> > VRunLumi13Jul(MakeVRunLumi("13Jul"));
 
 EventHandler::EventHandler(const std::string &fileName, const bool isList, const double scaleFactorIn, const bool fastMode):
   cfA(fileName, isList),
-  scaleFactor(scaleFactorIn){
+  scaleFactor(scaleFactorIn),
+  beta_(0),
+  beta_cached_(false){
   if (fastMode) { // turn off unnecessary branches
     chainA.SetBranchStatus("els_*",0);
     chainA.SetBranchStatus("triggerobject_*",0);
@@ -93,6 +95,7 @@ void EventHandler::SetScaleFactor(const double crossSection, const double lumino
 
 void EventHandler::GetEntry(const unsigned int entry){
   cfA::GetEntry(entry);
+  beta_cached_=false;
 }
 
 int EventHandler::GetcfAVersion() const{
@@ -108,58 +111,67 @@ int EventHandler::GetcfAVersion() const{
 }
 
 std::vector<double> EventHandler::GetBeta(const std::string which) const{
-  std::vector<double> beta(0);
+  if(!beta_cached_){
+    beta_cached_=true;
+    beta_.clear();
 
-  if (GetcfAVersion()<69){
-    beta.resize(jets_AK5PF_pt->size(), 0.0);
-  }else{
-    int totjet = 0;
-    int matches = 0;
-    for (unsigned int ijet=0; ijet<jets_AK5PF_pt->size(); ++ijet) {
-      const float pt = jets_AK5PF_pt->at(ijet);
-      const float eta = fabs(jets_AK5PF_eta->at(ijet));
+    if (GetcfAVersion()<69){
+      beta_.resize(jets_AK5PF_pt->size(), 0.0);
+    }else{
+      for (unsigned int ijet=0; ijet<jets_AK5PF_pt->size(); ++ijet) {
+        const float pt(jets_AK5PF_pt->at(ijet));
+        const float eta(fabs(jets_AK5PF_eta->at(ijet)));
       
-      int i = 0;
-      totjet++;
-      for (std::vector<std::vector<float> >::const_iterator itr = puJet_rejectionBeta->begin(); itr != puJet_rejectionBeta->end(); ++itr, ++i) {
-        int j = 0;
-        float mypt = 0;
-        float myeta = 0;
-        float mybeta = 0;
-        float result = 0;
-        float tmp1 = 0, tmp2 = 0, tmp3 = 0, tmp4 = 0;
-        for ( std::vector<float>::const_iterator it = itr->begin(); it != itr->end(); ++it, ++j) {
+        for(std::vector<std::vector<float> >::const_iterator itr(puJet_rejectionBeta->begin());
+            itr != puJet_rejectionBeta->end();
+            ++itr){
+          int j(0);
+          float mypt(0.0);
+          float myeta(0.0);
+          float result(0.0);
+          float tmp1(0.0), tmp2(0.0), tmp3(0.0), tmp4(0.0);
+          for(std::vector<float>::const_iterator it(itr->begin());
+              it != itr->end();
+              ++it, ++j) {
+            switch(j%6){
+            case 0:
+              mypt = *it;
+              break;
+            case 1:
+              myeta = fabs(*it); 
+              break;
+            case 2:
+              tmp1 = *it;
+              break;
+            case 3:
+              tmp2 = *it;
+              break;
+            case 4:
+              tmp3 = *it;
+              break;
+            case 5:
+              tmp4 = *it;
+              break;
+            default:
+              break;
+            }
           
-          if ( (j%6)==0 ) mypt = *it;  
-          if ( (j%6)==1 ) myeta = fabs(*it); 
-          if ( (j%6)==2 ) tmp1 = *it;  
-          if ( (j%6)==3 ) tmp2 = *it;  
-          if ( (j%6)==4 ) tmp3 = *it;  
-          if ( (j%6)==5 ) tmp4 = *it;  
+            if ( which.compare("beta")==0 )                 result = tmp1; 
+            else if ( which.compare("betaStar")==0 )        result = tmp2; 
+            else if ( which.compare("betaClassic")==0 )     result = tmp3; 
+            else if ( which.compare("betaStarClassic")==0 ) result = tmp4; 
+            else result = -5; //Don't assert..
           
-          //if ( which == "beta" )                 result = tmp1; 
-          //else if ( which == "betaStar" )        result = tmp2; 
-          //else if ( which == "betaClassic" )     result = tmp3; 
-          //else if ( which == "betaStarClassic" ) result = tmp4; 
-          //else result = -5; //Don't assert..
-          
-          if ( which.compare("beta")==0 )                 result = tmp1; 
-          else if ( which.compare("betaStar")==0 )        result = tmp2; 
-          else if ( which.compare("betaClassic")==0 )     result = tmp3; 
-          else if ( which.compare("betaStarClassic")==0 ) result = tmp4; 
-          else result = -5; //Don't assert..
-          
-        }//vector of info of each jet
-        if ( mypt == pt && myeta == eta ) {
-          matches++;
-          mybeta = result;
-          beta.push_back(mybeta);
-          break;
-        }     
-      }//vector of jets
-    } //ijet
+          }//vector of info of each jet
+          if ( mypt == pt && myeta == eta ) {
+            beta_.push_back(result);
+            break;
+          }     
+        }//vector of jets
+      } //ijet
+    }
   }
-  return beta;
+  return beta_;
 }
 
 void EventHandler::SetScaleFactor(const double scaleFactorIn){
@@ -396,15 +408,14 @@ bool EventHandler::jetPassLooseID(const unsigned int ijet) const{
   const int numConst = static_cast<int>(jets_AK5PF_mu_Mult->at(ijet)+jets_AK5PF_neutral_Mult->at(ijet)+jets_AK5PF_chg_Mult->at(ijet)); //stealing from Keith
   
   if (jetenergy>0.0) {
-    if (jets_AK5PF_neutralHadE->at(ijet) /jetenergy <= 0.99
-        && jets_AK5PF_neutralEmE->at(ijet) / jetenergy <= 0.99
+    const double jet_energy_inv(1.0/jetenergy);
+    const double eta(fabs(jets_AK5PF_eta->at(ijet)));
+    if (jets_AK5PF_neutralHadE->at(ijet) *jet_energy_inv <= 0.99
+        && jets_AK5PF_neutralEmE->at(ijet) * jet_energy_inv <= 0.99
         && numConst >= 2
-        && ( fabs(jets_AK5PF_eta->at(ijet))>=2.4
-             || (fabs(jets_AK5PF_eta->at(ijet))<2.4 && jets_AK5PF_chgHadE->at(ijet)/jetenergy>0))
-        && ( fabs(jets_AK5PF_eta->at(ijet))>=2.4
-             || (fabs(jets_AK5PF_eta->at(ijet))<2.4 && jets_AK5PF_chgEmE->at(ijet)/jetenergy<0.99))
-        && ( fabs(jets_AK5PF_eta->at(ijet))>=2.4
-             || (fabs(jets_AK5PF_eta->at(ijet))<2.4 && jets_AK5PF_chg_Mult->at(ijet)>0))){
+        && ( eta>=2.4 || ((jets_AK5PF_chgHadE->at(ijet)*jet_energy_inv) > 0.
+                          && (jets_AK5PF_chgEmE->at(ijet)*jet_energy_inv) < 0.99
+                          && jets_AK5PF_chg_Mult->at(ijet)>0))){
       return true;
     }
   }
@@ -710,9 +721,9 @@ double EventHandler::GetHighestJetCSV(const unsigned int nth_highest) const{
 
 int EventHandler::GetMass1() const{
   const std::string::size_type p1(model_params->find('_'));
-  const std::string::size_type p2(model_params->find('_',p1));
+  const std::string::size_type p2(model_params->find('_',p1+1));
   if(p1!=std::string::npos && p2!=std::string::npos){
-    return atoi(model_params->substr(p1,p2-p1).c_str());
+    return atoi(model_params->substr(p1+1,p2-p1-1).c_str());
   }else{
     return -1;
   }
@@ -720,10 +731,10 @@ int EventHandler::GetMass1() const{
 
 int EventHandler::GetMass2() const{
   const std::string::size_type p1(model_params->find('_'));
-  const std::string::size_type p2(model_params->find('_',p1));
-  const std::string::size_type p3(model_params->find(' ',p2));
+  const std::string::size_type p2(model_params->find('_',p1+1));
+  const std::string::size_type p3(model_params->find(' ',p2+1));
   if(p2!=std::string::npos && p3!=std::string::npos){
-    return atoi(model_params->substr(p2,p3-p2).c_str());
+    return atoi(model_params->substr(p2+1,p3-p2-1).c_str());
   }else{
     return -1;
   }

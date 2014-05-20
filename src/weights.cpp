@@ -31,7 +31,7 @@ double WeightCalculator::GetCrossSection(const std::string &process) const{
 double WeightCalculator::GetCrossSection(const std::string &process, const int m1,
                                          const int m2) const{
   if(m1>=0 && m2>=0){
-    if(process.find("SMS-T1tttt_2J_mGo-845to3000_mLSP-1to1355_TuneZ2star_14TeV-madgraph-tauola_Summer12-START53_V7C_FSIM_PU_S12-v1_AODSIM_UCSB1845reshuf_v68")!=std::string::npos){
+    if(process.find("SMS-T1tttt_2J_mGo-845to3000_mLSP-1to1355_TuneZ2star_14TeV-madgraph-tauola_Summer12-START53_V7C_FSIM_PU_S12-v1_AODSIM_UCSB1949reshuf_v71")!=std::string::npos){
       return GetT1tttt14TeVCrossSection(m1, m2);
     }else{
       //Other models go here eventually
@@ -55,7 +55,7 @@ int WeightCalculator::GetTotalEvents(const std::string &process) const{
 int WeightCalculator::GetTotalEvents(const std::string &process, const int m1,
                                      const int m2) const{
   if(m1>=0 && m2>=0){
-    if(process.find("SMS-T1tttt_2J_mGo-845to3000_mLSP-1to1355_TuneZ2star_14TeV-madgraph-tauola_Summer12-START53_V7C_FSIM_PU_S12-v1_AODSIM_UCSB1845reshuf_v68")!=std::string::npos){
+    if(process.find("SMS-T1tttt_2J_mGo-845to3000_mLSP-1to1355_TuneZ2star_14TeV-madgraph-tauola_Summer12-START53_V7C_FSIM_PU_S12-v1_AODSIM_UCSB1949reshuf_v71")!=std::string::npos){
       return GetT1tttt14TeVTotalEvents(m1, m2);
     }else{
       //Other models go here eventually
@@ -66,21 +66,13 @@ int WeightCalculator::GetTotalEvents(const std::string &process, const int m1,
   }
 }
 
-double WeightCalculator::GetWeight(const std::string &process) const{
-  const double xsec(GetCrossSection(process)), events(GetTotalEvents(process));
+double WeightCalculator::GetWeight(const std::string &process, const int m1,
+                                   const int m2) const{
+  const double xsec(GetCrossSection(process, m1, m2)), events(GetTotalEvents(process, m1, m2));
   if(events>=0 && xsec>=0.0){
     return lumi*xsec/static_cast<double>(events);
   }else{
     return 1.0;
-  }
-}
-
-double WeightCalculator::GetWeight(const std::string &process, const int m1,
-                                   const int m2) const{
-  if(m1>=0 && m2>=0){
-    return GetWeight(process);
-  }else{
-    return GetWeight(process);
   }
 }
 

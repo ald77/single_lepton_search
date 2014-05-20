@@ -17,8 +17,7 @@ public:
   int GetTotalEvents(const std::string&) const;
   int GetTotalEvents(const std::string&, const int, const int) const;
 
-  double GetWeight(const std::string&) const;
-  double GetWeight(const std::string&, const int, const int) const;
+  double GetWeight(const std::string&, const int m1=-1, const int m2=-1) const;
 
 private:
   static std::map<std::string, double> crossSectionTable;
