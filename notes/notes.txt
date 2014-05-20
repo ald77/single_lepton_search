@@ -1,36 +1,41 @@
 2014-05-13
 ==========
-
--Adding files to allow for reduced tree production
--Code has not yet been tested
--Need to add support for 8 TeV T1tttt cross-sections, event counts, weights, etc.
--Want to add meta-data inside the same ROOT file as the reduced tree TTree (production date, reduced tree version, original file name and event count, etc.)
+LOG: Adding files to allow for reduced tree production
+NEED (done): Code needs to be tested
+NEED: Need to add support for 8 TeV T1tttt cross-sections, event counts, weights, etc.
+WANT (done): Add meta-data inside the same ROOT file as the reduced tree TTree (production date, reduced tree version, original file name and event count, etc.)
 
 2014-05-14
 ==========
--Fixed bug in which GetMass1/2 were unable to handle files without the "_mass1_mass2 " pattern in model_params
--Code can now produce reduced_trees which look valid, but these still need further testing. Tested on UCSB1864ra2b_v71s so far.
--Possibly suspicious behavior in tested reduced_trees: all events pass JSON cuts and I'm not sure the number of leptons distributions are good given the RA2b skim cuts are applied (need to check what cuts are included)
--Committed missing reduced_trees folder to hold data
--Added support for meta-data in ROOT file associated with reduced_trees. Contains original file name, original event count, a version tag, and production date/time.
--Started producing version 0 reduced trees of UCSB1933 (13 TeV ttbar, v71), UCSB1949 (14 TeV T1tttt, v71), and UCSB2027reshuf (13 TeV ttbar with 25 ns bunch spacing, v71) for further testing and early studies. Production done with clean checkout of last commit.
--Reminders for things I'd like to do: try MT2 to remove dilepton ttbar background (assuming this turns out to be dominant background after MT cut), plotting utility that reads in from a config file (see Manuel's for example/starting point).
+LOG: Fixed bug in which GetMass1/2 were unable to handle files without the "_mass1_mass2 " pattern in model_params
+LOG: Code can now produce reduced_trees which look valid
+NEED (done): Test produced reduced_trees
+NEED: Possibly suspicious behavior in tested reduced_trees: all events pass JSON cuts and I'm not sure the number of leptons distributions are good given the RA2b skim cuts are applied (need to check what cuts are included)
+LOG: Committed missing reduced_trees folder to hold data
+LOG: Added support for meta-data in ROOT file associated with reduced_trees. Contains original file name, original event count, a version tag, and production date/time.
+PRODUCTION: Started producing version 0 reduced trees of UCSB1933 (13 TeV ttbar, v71), UCSB1949 (14 TeV T1tttt, v71), and UCSB2027reshuf (13 TeV ttbar with 25 ns bunch spacing, v71) for further testing and early studies. Production done with clean checkout of last commit.
+WANT (done): Try MT2 to remove dilepton ttbar background (assuming this turns out to be dominant background after MT cut)
+WANT: plotting utility that reads in from a config file (see Manuel's for example/starting point).
 
 2014-05-19
 ==========
--Improved the compilation system last night so that you don't need to explicitly link all the needed object files for each executable. Tested and seems to work so far.
--Checked and confirmed that things get removed from static library by compiling, checking the size of the library, adding a function to mt2_bisect.cpp, recompiling, rechecking the size of the library, removing that function, recompiling, and checking that the library shrunk back to it's original size
--Also might want to consider fully automating things by naming executable source with .cxx and object implementation with .cpp and then just taking everything from the src directory.
--Adding mt2_bisect code taken directly from https://github.com/neggert/MCTSusy/tree/master/mt2. Made the minimal changes necessary to remove all warnings. At some point, want to find/recreate my own version, as I seem to remember there are a few cases where this one produces an MT2 that is slightly off (albeit by a very small error). (Was this correlated with small test masses?) Also need to make sure I'm using this calculator correctly.
--Need to add variables to seperate fully leptonic and semi-leptonic ttbar to reduced trees. Have now added a couple of MT and MT2 variables, as well as the delta phi between the lepton and MET/W.
--Need to confirm that cuts are done correctly (e.g. tau veto, whether we require loose, medium, or tight leptons, whether HT includes MET/leptons, whether we apply MET cleaning, etc.).
--Taking cuts from slide 8 of cms2.physics.ucsb.edu/susy/slides/archive/14-04-09_Manuel_quick_plots.pdf which may not be the actual RA4 cuts.
--Triggers?
--Version 1 of reduced_trees is being committed. Has been lightly tested on UCSB1864ra2b_v71s. New version adds some RA4 cuts (need to checked for correctness!), MT and MT2 variables, and delta phi between lepton and W/MET
--Started producing version 1 reduced trees of UCSB1933 (13 TeV ttbar, v71), UCSB1949 (14 TeV T1tttt, v71), and UCSB2027reshuf (13 TeV ttbar with 25 ns bunch spacing, v71) for further testing and early studies. Production done with clean checkout of last commit.
+LOG: Improved the compilation system last night so that you don't need to explicitly link all the needed object files for each executable. Tested and seems to work so far.
+LOG: Checked and confirmed that things get removed from static library by compiling, checking the size of the library, adding a function to mt2_bisect.cpp, recompiling, rechecking the size of the library, removing that function, recompiling, and checking that the library shrunk back to it's original size
+WANT (done): Also might want to consider fully automating things by naming executable source with .cxx and object implementation with .cpp and then just taking everything from the src directory.
+LOG: Adding mt2_bisect code taken directly from https://github.com/neggert/MCTSusy/tree/master/mt2. Made the minimal changes necessary to remove all warnings.
+WANT: At some point, want to find/recreate my own version of MT2 calculator, as I seem to remember there are a few cases where this one produces an MT2 that is slightly off (albeit by a very small error). (Was this correlated with small test masses?)
+NEED (done): Need to make sure I'm using mt2_bisect correctly.
+NEED: Add variables to seperate fully leptonic and semi-leptonic ttbar to reduced trees.
+LOG: Have now added a couple of MT and MT2 variables, as well as the delta phi between the lepton and MET/W.
+NEED: Confirm that cuts are done correctly (e.g. tau veto, whether we require loose, medium, or tight leptons, whether HT includes MET/leptons, whether we apply MET cleaning, etc.). Taking cuts from slide 8 of cms2.physics.ucsb.edu/susy/slides/archive/14-04-09_Manuel_quick_plots.pdf which may not be the actual RA4 cuts.
+NEED: Triggers?
+LOG: Version 1 of reduced_trees is being committed. Has been lightly tested on UCSB1864ra2b_v71s. New version adds some RA4 cuts (need to checked for correctness!), MT and MT2 variables, and delta phi between lepton and W/MET
+PRODUCTION: Started producing version 1 reduced trees of UCSB1933 (13 TeV ttbar, v71), UCSB1949 (14 TeV T1tttt, v71), and UCSB2027reshuf (13 TeV ttbar with 25 ns bunch spacing, v71) for further testing and early studies. Production done with clean checkout of last commit.
 
 2014-05-20
 ==========
--Found a bug in reduced_trees versions 0 and 1 in which cross-sections/number of events are not properly computed for T1tttt
--Need to double check that the v71 cross-sections and numbers of events are now correct. For now just quickly replacing the v68 computation with identical numbers for v71.
--Changed makefile to allow compilation without having to list any files explicitly. Can now change source and header files and their dependencies without having to update makefile. Would like to remove redundancy in the recipes for .cxx and .cpp files.
+LOG: Found a bug in reduced_trees versions 0 and 1 in which cross-sections/number of events are not properly computed for T1tttt
+NEED: Double check that the v71 cross-sections and numbers of events are now correct. For now just quickly replacing the v68 computation with identical numbers for v71.
+LOG: Changed makefile to allow compilation without having to list any files explicitly. Can now change source and header files and their dependencies without having to update makefile.
+WANT: Would like to remove redundancy in the recipes for .cxx and .cpp files.
+LOG: Putting tags at beginning of each line in notes for easy grepping of tasks that need to be done, production history, etc.
