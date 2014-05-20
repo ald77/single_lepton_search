@@ -33,3 +33,4 @@
 ==========
 -Found a bug in reduced_trees versions 0 and 1 in which cross-sections/number of events are not properly computed for T1tttt
 -Need to double check that the v71 cross-sections and numbers of events are now correct. For now just quickly replacing the v68 computation with identical numbers for v71.
+-Changed makefile to allow compilation without having to list any files explicitly. Can now change source and header files and their dependencies without having to update makefile. Would like to remove redundancy in the recipes for .cxx and .cpp files.

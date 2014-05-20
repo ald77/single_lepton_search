@@ -1,9 +1,3 @@
-#Add new executables here
-EXECUTABLES := make_reduced_tree.exe view_reduced_tree_data.exe
-
-#Add new object files for linking here
-OBJECTS := cfa.o event_handler.o event_number.o in_json_2012.o math.o pu_constants.o reduced_tree_maker.o timer.o utils.o weights.o mt2_bisect.o
-
 EXEDIR := scripts
 OBJDIR := bin
 SRCDIR := src
@@ -18,7 +12,11 @@ LD := $(shell root-config --ld)
 LDFLAGS := $(shell root-config --ldflags)
 LDLIBS := $(shell root-config --libs) -lMinuit
 
+EXECUTABLES := $(addsuffix .exe, $(notdir $(basename $(wildcard $(SRCDIR)/*.cxx))))
+OBJECTS := $(addprefix $(OBJDIR)/, $(addsuffix .o, $(notdir $(basename $(wildcard $(SRCDIR)/*.cpp))))) cfa.o
+
 vpath %.cpp $(SRCDIR)
+vpath %.cxx $(SRCDIR)
 vpath %.hpp $(INCDIR)
 vpath %.o $(OBJDIR)
 vpath %.exe $(EXEDIR)
@@ -27,6 +25,7 @@ vpath %.d $(MAKEDIR)
 all: $(EXECUTABLES)
 
 -include $(addsuffix .d,$(addprefix $(MAKEDIR)/,$(notdir $(basename $(wildcard $(SRCDIR)/*.cpp)))))
+-include $(addsuffix .d,$(addprefix $(MAKEDIR)/,$(notdir $(basename $(wildcard $(SRCDIR)/*.cxx)))))
 -include $(MAKEDIR)/cfa.d
 
 $(LIBFILE): $(OBJECTS)
@@ -35,7 +34,14 @@ $(MAKEDIR)/%.d: $(SRCDIR)/%.cpp
 	$(CXX) $(CXXFLAGS) -MM -MG -MF $@ $< 
 	sed -i'' 's#$*.o#$(OBJDIR)/$*.o $(MAKEDIR)/$*.d#g' $@
 
+$(MAKEDIR)/%.d: $(SRCDIR)/%.cxx
+	$(CXX) $(CXXFLAGS) -MM -MG -MF $@ $< 
+	sed -i'' 's#$*.o#$(OBJDIR)/$*.o $(MAKEDIR)/$*.d#g' $@
+
 $(OBJDIR)/%.o: $(SRCDIR)/%.cpp
+	$(CXX) $(CXXFLAGS) -o $@ -c $<
+
+$(OBJDIR)/%.o: $(SRCDIR)/%.cxx
 	$(CXX) $(CXXFLAGS) -o $@ -c $<
 
 $(OBJDIR)/%.a:
