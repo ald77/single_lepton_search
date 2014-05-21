@@ -43,3 +43,4 @@ LOG: Putting tags at beginning of each line in notes for easy grepping of tasks 
 2014-05-22
 ==========
 LOG: Adding number of generated leptons and bl invariant mass variables to reduced trees and the start of production time to the meta info. Now at reduced tree version 3.
+PROD: Started production of version3 reduced trees for UCSB1933 (13 TeV ttbar, v71), UCSB1949 (14 TeV T1tttt, v71), and UCSB2027reshuf (13 TeV ttbar with 25 ns bunch spacing, v71). Production done with clean pull of last commit.
