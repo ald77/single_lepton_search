@@ -39,3 +39,7 @@ NEED: Double check that the v71 cross-sections and numbers of events are now cor
 LOG: Changed makefile to allow compilation without having to list any files explicitly. Can now change source and header files and their dependencies without having to update makefile.
 WANT: Would like to remove redundancy in the recipes for .cxx and .cpp files.
 LOG: Putting tags at beginning of each line in notes for easy grepping of tasks that need to be done, production history, etc.
+
+2014-05-22
+==========
+LOG: Adding number of generated leptons and bl invariant mass variables to reduced trees and the start of production time to the meta info. Now at reduced tree version 3.

@@ -3,13 +3,14 @@
 #include <vector>
 #include <string>
 #include <set>
+#include <algorithm>
 #include <stdint.h>
 #include "timer.hpp"
 #include "event_handler.hpp"
 #include "event_number.hpp"
 #include "weights.hpp"
 
-const uint16_t ReducedTreeMaker::reduced_tree_version(2);
+const uint16_t ReducedTreeMaker::reduced_tree_version(3);
 
 ReducedTreeMaker::ReducedTreeMaker(const std::string& in_file_name,
                                    const bool is_list,
@@ -19,6 +20,17 @@ ReducedTreeMaker::ReducedTreeMaker(const std::string& in_file_name,
 
 void ReducedTreeMaker::MakeReducedTree(const std::string& out_file_name){
   TFile file(out_file_name.c_str(), "recreate");
+  time_t raw_time;
+  time(&raw_time);
+  struct tm * utc_start_time(gmtime(&raw_time));
+  uint16_t utc_start_year(utc_start_time->tm_year+1900);
+  uint8_t utc_start_month(utc_start_time->tm_mon+1);
+  uint8_t utc_start_day(utc_start_time->tm_mday);
+  uint8_t utc_start_hour(utc_start_time->tm_hour);
+  uint8_t utc_start_minute(utc_start_time->tm_min);
+  uint8_t utc_start_second(utc_start_time->tm_sec);
+  int32_t utc_start_isdst(utc_start_time->tm_isdst);
+
   std::set<EventNumber> eventList;
   file.cd();
 
@@ -57,6 +69,15 @@ void ReducedTreeMaker::MakeReducedTree(const std::string& out_file_name){
 
   float ht_jets(0.0), ht_jets_met(0.0), ht_jets_leps(0.0), ht_jets_met_leps(0.0);
   float full_weight(0.0), lumi_weight(0.0), pu_weight(0.0);
+
+  float max_bl_mass_highest_pt_emu_two_best_csv(0.0);
+  float min_bl_mass_highest_pt_emu_two_best_csv(0.0);
+  float max_bl_mass_highest_pt_emu_all_csvm(0.0);
+  float min_bl_mass_highest_pt_emu_all_csvm(0.0);
+
+  uint8_t num_generated_emu_from_w_from_t(0);
+  uint8_t num_generated_emu_from_w(0);
+  uint8_t num_generated_emu(0);
 
   float cross_section(0.0);
   uint32_t events_of_this_type(0);
@@ -130,6 +151,15 @@ void ReducedTreeMaker::MakeReducedTree(const std::string& out_file_name){
   reduced_tree.Branch("mt_high_pt_loose_emu", &mt_high_pt_loose_emu);
   reduced_tree.Branch("delta_phi_met_high_pt_loose_emu", &delta_phi_met_high_pt_loose_emu);
   reduced_tree.Branch("delta_phi_W_high_pt_loose_emu", &delta_phi_W_high_pt_loose_emu);
+
+  reduced_tree.Branch("max_bl_mass_highest_pt_emu_two_best_csv",&max_bl_mass_highest_pt_emu_two_best_csv);
+  reduced_tree.Branch("min_bl_mass_highest_pt_emu_two_best_csv",&min_bl_mass_highest_pt_emu_two_best_csv);
+  reduced_tree.Branch("max_bl_mass_highest_pt_emu_all_csvm",&max_bl_mass_highest_pt_emu_all_csvm);
+  reduced_tree.Branch("min_bl_mass_highest_pt_emu_all_csvm",&min_bl_mass_highest_pt_emu_all_csvm);
+
+  reduced_tree.Branch("num_generated_emu_from_w_from_t",&num_generated_emu_from_w_from_t);
+  reduced_tree.Branch("num_generated_emu_from_w",&num_generated_emu_from_w);
+  reduced_tree.Branch("num_generated_emu",&num_generated_emu);
 
   reduced_tree.Branch("full_weight", &full_weight);
   reduced_tree.Branch("lumi_weight", &lumi_weight);
@@ -221,6 +251,27 @@ void ReducedTreeMaker::MakeReducedTree(const std::string& out_file_name){
     ht_jets_leps=GetHT(false, true);
     ht_jets_met_leps=GetHT(true, true);
 
+    std::vector<double> bl_masses_two_best(GetBLInvariantMasses(2, -std::numeric_limits<float>::max()));
+    std::vector<double> bl_masses_all_csvm(GetBLInvariantMasses(0, EventHandler::CSVMCut));
+    if(bl_masses_two_best.size()){
+      max_bl_mass_highest_pt_emu_two_best_csv=*std::max_element(bl_masses_two_best.begin(), bl_masses_two_best.end());
+      min_bl_mass_highest_pt_emu_two_best_csv=*std::min_element(bl_masses_two_best.begin(), bl_masses_two_best.end());
+    }else{
+      max_bl_mass_highest_pt_emu_two_best_csv=0.0;
+      min_bl_mass_highest_pt_emu_two_best_csv=0.0;
+    }
+    if(bl_masses_all_csvm.size()){
+      max_bl_mass_highest_pt_emu_all_csvm=*std::max_element(bl_masses_all_csvm.begin(), bl_masses_all_csvm.end());
+      min_bl_mass_highest_pt_emu_all_csvm=*std::min_element(bl_masses_all_csvm.begin(), bl_masses_all_csvm.end());
+    }else{
+      max_bl_mass_highest_pt_emu_all_csvm=0.0;
+      min_bl_mass_highest_pt_emu_all_csvm=0.0;
+    }
+    
+    num_generated_emu_from_w_from_t=GetNumberOfGeneratedEMu(true, true);
+    num_generated_emu_from_w=GetNumberOfGeneratedEMu(true, false);
+    num_generated_emu=GetNumberOfGeneratedEMu(false, false);
+
     mass1=GetMass1();
     mass2=GetMass2();
 
@@ -241,10 +292,8 @@ void ReducedTreeMaker::MakeReducedTree(const std::string& out_file_name){
 
     reduced_tree.Fill(); 
   }
-
   reduced_tree.Write();
 
-  time_t raw_time;
   time(&raw_time);
   struct tm * utc_creation_time(gmtime(&raw_time));
   uint16_t utc_creation_year(utc_creation_time->tm_year+1900);
@@ -256,11 +305,13 @@ void ReducedTreeMaker::MakeReducedTree(const std::string& out_file_name){
   int32_t utc_creation_isdst(utc_creation_time->tm_isdst);
 
   uint32_t original_file_entries(GetTotalEntries());
+  uint32_t reduced_tree_entries(reduced_tree.GetEntries());
 
   TTree meta_info("meta_info", "meta_info");
   meta_info.Branch("original_file_name", &sampleName);
-  meta_info.Branch("original_file_entries", &original_file_entries);
   meta_info.Branch("reduced_tree_version", const_cast<uint16_t*>(&reduced_tree_version));
+  meta_info.Branch("original_file_entries", &original_file_entries);
+  meta_info.Branch("reduced_tree_entries", &reduced_tree_entries);
   meta_info.Branch("utc_creation_year", &utc_creation_year);
   meta_info.Branch("utc_creation_month", &utc_creation_month);
   meta_info.Branch("utc_creation_day", &utc_creation_day);
@@ -268,6 +319,13 @@ void ReducedTreeMaker::MakeReducedTree(const std::string& out_file_name){
   meta_info.Branch("utc_creation_minute", &utc_creation_minute);
   meta_info.Branch("utc_creation_second", &utc_creation_second);
   meta_info.Branch("utc_creation_isdst", &utc_creation_isdst);
+  meta_info.Branch("utc_start_year", &utc_start_year);
+  meta_info.Branch("utc_start_month", &utc_start_month);
+  meta_info.Branch("utc_start_day", &utc_start_day);
+  meta_info.Branch("utc_start_hour", &utc_start_hour);
+  meta_info.Branch("utc_start_minute", &utc_start_minute);
+  meta_info.Branch("utc_start_second", &utc_start_second);
+  meta_info.Branch("utc_start_isdst", &utc_start_isdst);
   meta_info.Fill();
   meta_info.Write();
 

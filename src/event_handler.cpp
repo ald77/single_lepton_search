@@ -900,3 +900,69 @@ double EventHandler::GetDeltaPhiWLepton() const{
     return std::numeric_limits<double>::max();
   }
 }
+
+unsigned EventHandler::GetNumberOfGeneratedEMu(const bool check_W, const bool check_top) const{
+  unsigned count(0);
+  for(unsigned particle(0); particle<mc_doc_id->size(); ++particle){
+    if((fabs(mc_doc_id->at(particle))==11.0 || fabs(mc_doc_id->at(particle))==13)
+       && (fabs(mc_doc_mother_id->at(particle))==24.0 || !check_W)
+       && (fabs(mc_doc_grandmother_id->at(particle))==6.0 || !check_top)){
+      ++count;
+    }
+  }
+  return count;
+}
+
+std::vector<double> EventHandler::GetBLInvariantMasses(const unsigned num_bs, const double csv_cut){
+  //Returns all possible b-l invariant masses for the highest pt electron or muon and the num_bs highest
+  //csv-valued jets with a csv of at_least csv_cut. If num_bs==0 (the default), it uses all jets.
+  std::vector<double> vals(0);
+  double max_pt(-std::numeric_limits<double>::max());
+  unsigned lep_index(0);
+  bool found_electron(false), found_muon(false);
+  for(unsigned ele(0); ele<pf_els_pt->size(); ++ele){
+    if(isElectron(ele, 1)){
+      const double this_pt(pf_els_pt->at(ele));
+      if(this_pt>max_pt){
+        max_pt=this_pt;
+        lep_index=ele;
+        found_electron=true;
+      }
+    }
+  }
+  for(unsigned mu(0); mu<pf_mus_pt->size(); ++mu){
+    if(isMuon(mu, 1)){
+      const double this_pt(pf_mus_pt->at(mu));
+      if(this_pt>max_pt){
+        max_pt=this_pt;
+        lep_index=mu;
+        found_muon=true;
+      }
+    }
+  }
+  double lep_px(0.0), lep_py(0.0), lep_pz(0.0), lep_e(0.0);
+  if(found_muon){
+    lep_px=pf_mus_px->at(lep_index);
+    lep_py=pf_mus_py->at(lep_index);
+    lep_pz=pf_mus_pz->at(lep_index);
+    lep_e=pf_mus_energy->at(lep_index);
+  }else if(found_electron){
+    lep_px=pf_els_px->at(lep_index);
+    lep_py=pf_els_py->at(lep_index);
+    lep_pz=pf_els_pz->at(lep_index);
+    lep_e=pf_els_energy->at(lep_index);
+  }
+  
+  std::vector<std::pair<double, unsigned> > tags(0);
+  for(unsigned jet(0); jet<jets_AK5PF_btag_secVertexCombined->size(); ++jet){
+    if(isGoodJet(jet)) tags.push_back(std::make_pair(jets_AK5PF_btag_secVertexCombined->at(jet), jet));
+  }
+  std::sort(tags.begin(), tags.end(), std::greater<std::pair<double, unsigned> >());
+  for(unsigned jet(0); jet<tags.size() && (num_bs==0 || jet<num_bs) && tags.at(jet).first>=csv_cut; ++jet){
+    const unsigned i(tags.at(jet).second);
+    TLorentzVector v(jets_AK5PF_px->at(i)+lep_px, jets_AK5PF_py->at(i)+lep_py,
+                     jets_AK5PF_pz->at(i)+lep_pz, jets_AK5PF_energy->at(i)+lep_e);
+    vals.push_back(v.M());
+  }
+  return vals;
+}

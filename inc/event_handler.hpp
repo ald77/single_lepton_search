@@ -101,6 +101,9 @@ protected:
   int GetMass1() const;
   int GetMass2() const;
 
+  std::vector<double> GetBLInvariantMasses(const unsigned num_bs, const double csv_cut);
+  unsigned GetNumberOfGeneratedEMu(const bool check_W=true, const bool check_top=true) const;
+
 private:
   mutable std::vector<double> beta_;
   mutable bool beta_cached_;
